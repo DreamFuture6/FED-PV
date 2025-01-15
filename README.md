@@ -19,6 +19,9 @@ To be improved.
 
 ```
 main   
+├─ flow_sets
+│  └─ [flow field name]   
+│     └─ *.flo 
 ├─ dataset   
 │  └─ [flow field name]   
 │     └─ *.png, *.h5   
