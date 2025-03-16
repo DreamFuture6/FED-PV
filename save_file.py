@@ -4,6 +4,7 @@ import h5py
 import numpy as np
 import gen_event as ge
 import matplotlib.pyplot as plt
+import utils.progress_bar as pbar
 from struct import pack
 from utils.class_dict import *
 
@@ -22,12 +23,18 @@ def Save_Image(name: str, config: ConfigDict, PIV_img=None, PSV_img=None):
     if PIV_img is not None:
         cv2.imwrite(
             os.path.join(dataset_path, config.flow_type, f"{name}.png"),
-            PIV_img[config.expand_flow : -config.expand_flow, config.expand_flow : -config.expand_flow],
+            PIV_img[
+                config.expand_flow : -config.expand_flow,
+                config.expand_flow : -config.expand_flow,
+            ],
         )
     if PSV_img is not None:
         cv2.imwrite(
             os.path.join(dataset_path, config.flow_type, f"{name}.png"),
-            PSV_img[config.expand_flow : -config.expand_flow, config.expand_flow : -config.expand_flow],
+            PSV_img[
+                config.expand_flow : -config.expand_flow,
+                config.expand_flow : -config.expand_flow,
+            ],
         )
 
 
@@ -37,8 +44,13 @@ def Save_Flow_Info(config: ConfigDict):
     #     flow=config.flow[config.expand_flow : -config.expand_flow, config.expand_flow : -config.expand_flow],
     # )
 
-    data = config.flow[config.expand_flow : -config.expand_flow, config.expand_flow : -config.expand_flow]
-    with open(os.path.join(dataset_path, config.flow_type, f"{config.name}.flo"), "wb") as f:
+    data = config.flow[
+        config.expand_flow : -config.expand_flow,
+        config.expand_flow : -config.expand_flow,
+    ]
+    with open(
+        os.path.join(dataset_path, config.flow_type, f"{config.name}.flo"), "wb"
+    ) as f:
         np.array([202411.22], dtype=np.float32).tofile(f)
         np.array([data.shape[0]], dtype=np.uint32).tofile(f)
         np.array([data.shape[1]], dtype=np.uint32).tofile(f)
@@ -48,7 +60,10 @@ def Save_Flow_Info(config: ConfigDict):
 def Add_Evt_Process_Data(config: ConfigDict, PIV_img=None):
     global PIV_data
     if PIV_img is not None:
-        PIV_img = PIV_img[config.expand_flow : -config.expand_flow, config.expand_flow : -config.expand_flow]
+        PIV_img = PIV_img[
+            config.expand_flow : -config.expand_flow,
+            config.expand_flow : -config.expand_flow,
+        ]
         if PIV_data is not None:
             PIV_data = np.append(PIV_data, [PIV_img], axis=0)
         else:
@@ -56,6 +71,9 @@ def Add_Evt_Process_Data(config: ConfigDict, PIV_img=None):
 
 
 def Save_Evt_Data(config: ConfigDict):
+
+    pbar.Progress_Bar_Show_String("EVT format data being generated.", config)
+
     global PIV_data
 
     dir_name = os.path.join(evt_path, config.flow_type)
@@ -78,7 +96,9 @@ def Save_Evt_Data(config: ConfigDict):
 
         event_image = np.ones((256, 256, 3), dtype=np.uint8) * 255
 
-        filtered_events = [event for event in event_list if start_time <= event.time <= end_time]
+        filtered_events = [
+            event for event in event_list if start_time <= event.time <= end_time
+        ]
 
         for event in filtered_events:
             if event.polarity == 1:
@@ -90,10 +110,15 @@ def Save_Evt_Data(config: ConfigDict):
         plt.title(f"Events from {start_time}s to {end_time}s")
         plt.xlabel("X")
         plt.ylabel("Y")
-        plt.savefig(os.path.join(evt_path, config.flow_type, config.name.split(".")[0]) + ".png")
+        plt.savefig(
+            os.path.join(evt_path, config.flow_type, config.name.split(".")[0]) + ".png"
+        )
 
     if True:
-        fnOUT = os.path.join(dataset_path, config.flow_type, config.name.split(".")[0]) + ".h5"
+        fnOUT = (
+            os.path.join(dataset_path, config.flow_type, config.name.split(".")[0])
+            + ".h5"
+        )
         t = np.round(evDict["t"]).astype(np.uint16)
 
         with h5py.File(fnOUT, "w") as file:
@@ -105,10 +130,14 @@ def Save_Evt_Data(config: ConfigDict):
 
             info_group = file.create_group("info")
             info_group.create_dataset("time_stamp", data=0, dtype=np.uint16)
-            info_group.create_dataset("image_size", data=evDict["image_size"], dtype=np.uint16)
+            info_group.create_dataset(
+                "image_size", data=evDict["image_size"], dtype=np.uint16
+            )
 
     if True:
-        fnOUT = os.path.join(evt_path, config.flow_type, config.name.split(".")[0]) + ".evt"
+        fnOUT = (
+            os.path.join(evt_path, config.flow_type, config.name.split(".")[0]) + ".evt"
+        )
         offset, duration = 0, 0
 
         t1 = offset
@@ -143,9 +172,11 @@ def Save_Evt_Data(config: ConfigDict):
             nBytesWritten = binary_file.write(header)
             nBytesWritten2 = binary_file.write(packedData)
             binary_file.close()
-            print(
-                "Wrote %d events of duration %gms into EVT file with (%d+%d) bytes"
-                % (evTime_OUT.size, (duration / 1000), nBytesWritten, nBytesWritten2)
-            )
+            # print(
+            #     "Wrote %d events of duration %gms into EVT file with (%d+%d) bytes"
+            #     % (evTime_OUT.size, (duration / 1000), nBytesWritten, nBytesWritten2)
+            # )
 
     PIV_data = None
+
+    return evTime_OUT.size

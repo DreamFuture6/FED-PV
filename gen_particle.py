@@ -3,7 +3,7 @@ import scipy.special as ss
 import save_file as sf
 import utils.progress_bar as pbar
 import cv2
-from utils.class_dict import *
+from utils.class_dict import PointsInfo, ConfigDict
 
 
 def Random_Particle(width: int, height: int, config: ConfigDict):
@@ -22,7 +22,9 @@ def Random_Particle(width: int, height: int, config: ConfigDict):
 
 def Particle_Init(config: ConfigDict):
     block_size = config.expand_flow // 2
-    offset_mask = np.where(np.ones((config.width // block_size, config.height // block_size), dtype=bool))
+    offset_mask = np.where(
+        np.ones((config.width // block_size, config.height // block_size), dtype=bool)
+    )
     points = PointsInfo()
     for i in range(offset_mask[0].size):
         new_points = Random_Particle(block_size, block_size, config).Offset_coordinate(
@@ -33,16 +35,27 @@ def Particle_Init(config: ConfigDict):
 
 
 def Adjust_Particle(config: ConfigDict, points: PointsInfo, image: np.ndarray):
-    mask = (points.x >= 0) & (points.y >= 0) & (points.x <= config.width - 1) & (points.y <= config.height - 1)
+    mask = (
+        (points.x >= 0)
+        & (points.y >= 0)
+        & (points.x <= config.width - 1)
+        & (points.y <= config.height - 1)
+    )
     points.Delete_Points(mask)
 
     block_size = config.expand_flow // 2
-    sum_shape = (image.shape[0] // block_size, image.shape[1] // block_size, block_size, block_size)
+    sum_shape = (
+        image.shape[0] // block_size,
+        image.shape[1] // block_size,
+        block_size,
+        block_size,
+    )
 
     blocks_mean = np.lib.stride_tricks.as_strided(
         image[: image.shape[0] // 10 * 10, : image.shape[1] // 10 * 10],
         shape=sum_shape,
-        strides=image.itemsize * np.array([image.shape[1] * block_size, block_size, image.shape[0], 1]),
+        strides=image.itemsize
+        * np.array([image.shape[1] * block_size, block_size, image.shape[0], 1]),
     ).mean(axis=(2, 3))
 
     outer_mask = np.ones((sum_shape[0], sum_shape[1]), dtype=bool)
@@ -53,19 +66,19 @@ def Adjust_Particle(config: ConfigDict, points: PointsInfo, image: np.ndarray):
     expand_insert_area = block_size * config.flow.max() // 18000
     insert_points = PointsInfo()
     for i in range(insert_area[0].size):
-        x_flag, y_flag = 0, 0
+        x_flag, y_flag = 0.0, 0.0
         if insert_area[0][i] == 0:
-            x_flag = 1
+            x_flag = 1.0
             y_flag = -0.5
         elif insert_area[0][i] == insert_area[0][i].max():
-            x_flag = -1
+            x_flag = -1.0
             y_flag = -0.5
         if insert_area[1][i] == 0:
             x_flag = -0.5
-            y_flag = 1
+            y_flag = 1.0
         elif insert_area[1][i] == insert_area[1][i].max():
             x_flag = -0.5
-            y_flag = -1
+            y_flag = -1.0
         new_points = Random_Particle(
             block_size + expand_insert_area, block_size + expand_insert_area, config
         ).Offset_coordinate(
@@ -98,9 +111,16 @@ def Bilinear_Interpolate(flow: np.ndarray, x: np.ndarray, y: np.ndarray):
     w21 = (x - x1) * (y2 - y)
     w22 = (x - x1) * (y - y1)
 
-    v = w11[:, np.newaxis] * v11 + w12[:, np.newaxis] * v12 + w21[:, np.newaxis] * v21 + w22[:, np.newaxis] * v22
+    v = (
+        w11[:, np.newaxis] * v11
+        + w12[:, np.newaxis] * v12
+        + w21[:, np.newaxis] * v21
+        + w22[:, np.newaxis] * v22
+    )
 
-    return np.transpose(np.round(v, 7 if flow.dtype == np.float32 else 15))  # 保持与流场相同的精度
+    return np.transpose(
+        np.round(v, 7 if flow.dtype == np.float32 else 15)
+    )  # 保持与流场相同的精度
 
 
 def Arc_Fitting(config: ConfigDict, points: PointsInfo):
@@ -142,17 +162,30 @@ def Gen_Gray_Frame(config: ConfigDict, points: PointsInfo):
 
 def Gen_Particle_Seq(config: ConfigDict):
     update_interval = config.expand_flow // 3 / np.max(config.flow)
-    update_time = 0
+    update_time = 0.0
 
     points = Particle_Init(config)
     [points.vx, points.vy] = Bilinear_Interpolate(config.flow, points.x, points.y)
 
-    currNum, _pivdt, _psvdt, save_interval, save_index = 0, 0, 0, 0, 0
+    currNum, _pivdt, _psvdt, save_interval, save_index = 0, 0.0, 0.0, 0, 0
 
-    PIV_image, PSV_image = None, np.zeros((config.height, config.width))
-    start_save_img_tick = config.piv_img_total - int(config.img_save_num * config.img_save_interval + 0.5)
+    PIV_image, PSV_image = Gen_Gray_Frame(config, points), np.zeros(
+        (config.height, config.width)
+    )
+    start_save_img_tick = config.piv_img_total - int(
+        config.img_save_num * config.img_save_interval + 0.5
+    )
 
     pbar.Progress_Bar_Show(0, config)
+
+    # 保留0时刻图像
+    if config.noise > 0:
+        PIV_image += np.random.normal(0, config.noise, PIV_image.shape)
+        PIV_image[PIV_image > 255] = 255
+        PIV_image[PIV_image < 0] = 0
+    if config.blur > 0:
+        PIV_image = cv2.GaussianBlur(PIV_image, (config.blur, config.blur), 0)
+    sf.Add_Evt_Process_Data(config, PIV_img=PIV_image)
 
     while True:
 
@@ -187,13 +220,21 @@ def Gen_Particle_Seq(config: ConfigDict):
 
                 if currNum >= start_save_img_tick:
 
-                    sf.Save_Image(f"{config.name}-PIV-{save_index}", config, PIV_img=PIV_image)
+                    sf.Save_Image(
+                        f"{config.name}-PIV-{save_index}", config, PIV_img=PIV_image
+                    )
 
                     if save_index != 0:
-                        PSV_image = (PSV_image // config.img_save_interval) * config.psv_filter
+                        PSV_image = (
+                            PSV_image // config.img_save_interval
+                        ) * config.psv_filter
                         PSV_image[PSV_image > 255] = 255
                         PSV_image[PSV_image < 0] = 0
-                        sf.Save_Image(f"{config.name}-PSV-{save_index-1}", config, PSV_img=PSV_image)
+                        sf.Save_Image(
+                            f"{config.name}-PSV-{save_index-1}",
+                            config,
+                            PSV_img=PSV_image,
+                        )
 
                     PSV_image = np.zeros((config.height, config.width))
                     save_index += 1

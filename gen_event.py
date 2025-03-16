@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class EventList:
     def __init__(self, time, x, y, polarity):
         self.time = round(float(time), 8)
@@ -22,7 +23,7 @@ def gen_event(img_data):
     img_lux_ref = images[0].copy()
     img_time_ref = np.zeros((height, width))
     num = 0
-    for i in range(1, 153):
+    for i in range(1, 151):
         dl = images[i] - img_lux_ref
         for y in range(height):
             for x in range(width):
@@ -61,6 +62,9 @@ def gen_event(img_data):
 
     event_list.sort(key=lambda event0: event0.time)
 
-    event_list = [EventList(event.time * 1e6, event.x, event.y, event.polarity) for event in event_list]
+    event_list = [
+        EventList(event.time * 1e6, event.x, event.y, event.polarity)
+        for event in event_list
+    ]
 
     return event_list
