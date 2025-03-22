@@ -134,7 +134,7 @@ def Save_Evt_Data(config: ConfigDict):
                 "image_size", data=evDict["image_size"], dtype=np.uint16
             )
 
-    if True:
+    if False:
         fnOUT = (
             os.path.join(evt_path, config.flow_type, config.name.split(".")[0]) + ".evt"
         )
@@ -178,5 +178,3 @@ def Save_Evt_Data(config: ConfigDict):
             # )
 
     PIV_data = None
-
-    return evTime_OUT.size

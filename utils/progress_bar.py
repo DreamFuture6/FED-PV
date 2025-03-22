@@ -8,25 +8,25 @@ _start_time = 0
 
 
 def Init_Progress_Bar(total: int):
-    global _curr, _total, _program_time1
+    global _curr, _total, _start_time
     _curr = 1
     _total = total
-    _program_time1 = time.perf_counter()
+    _start_time = time.perf_counter()
 
 
-def Next_Progress_Bar(evtSize: int, config: ConfigDict):
-    global _curr, _start_time
+def Next_Progress_Bar(config: ConfigDict):
+    global _curr
     temp_time = time.perf_counter()
     print(
-        f"[{config.name}] Total:{temp_time - _start_time:.1f}s | Current:{temp_time - _program_time1:.1f}s | PNG:{_program_time2 - _program_time1:.1f}s | EVT:{temp_time - _program_time2:.1f}s ({evtSize})\033[K"
+        f"[{config.name}] Total:{temp_time - _start_time:.1f}s | Current:{temp_time - _program_time1:.1f}s | PNG:{_program_time2 - _program_time1:.1f}s | EVT:{temp_time - _program_time2:.1f}s\033[K"
     )
     _curr += 1
 
 
 def Progress_Bar_Show(completed: float, config: ConfigDict):
     if completed == 0:
-        global _start_time
-        _start_time = time.perf_counter()
+        global _program_time1
+        _program_time1 = time.perf_counter()
 
     progress = int(20 * completed / config.piv_img_total + 0.5)
     bar = "PNG format data: [" + "=" * progress + "·" * (20 - progress) + "]"

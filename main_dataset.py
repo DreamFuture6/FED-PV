@@ -34,9 +34,9 @@ def gen_dataset(_path, _type):
 
     gp.Gen_Particle_Seq(config)
 
-    evtSize = sf.Save_Evt_Data(config)
+    sf.Save_Evt_Data(config)
 
-    pbar.Next_Progress_Bar(evtSize, config)
+    pbar.Next_Progress_Bar(config)
 
 
 def main(path):
