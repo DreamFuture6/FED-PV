@@ -4,16 +4,26 @@
 
 This is code accompanying the dataset ~~and paper~~ by Xiang Feng, Fan Wu and Aoyu Zhang.
 
-Look forward to the upcoming release of our dataset.
-
 ## Dataset Presentation
 
 The following are the three flow fields in our dataset, which are (a) Cylinder, (b) JHTDB, and (c) Backstep.
-![image](MPV_figure2.png)
+![image](MPV_figure.png)
+
+Each data item contains four grayscale particle images, 15 ms of event data, and the corresponding ground-truth motion field. For example:
+
+> \cylinder\cylinder_Re150_00001_flow-PIV-0.png
+> \cylinder\cylinder_Re150_00001_flow-PIV-1.png
+> \cylinder\cylinder_Re150_00001_flow-PIV-2.png
+> \cylinder\cylinder_Re150_00001_flow-PIV3.png
+> \cylinder\cylinder_Re150_00001_flow.h5
+> \cylinder\cylinder_Re150_00001_flow.flo
 
 ## Install
 
-To be improved.
+The dataset is publicly available on the OneDrive platform:
+
+> URL: https://1drv.ms/f/c/b5123d043eaaea38/Esyx_kKJJaVNv3AgLJzcISEBGLji58gVUJqrTs4O9OAhog?e=161kuT
+> Password: FEDPV666
 
 ## Directory structure
 
@@ -35,8 +45,7 @@ main
 │  └─ smoothn.py  
 ├─ gen_event.py  
 ├─ gen_particle.py   
-├─ main_dataset.py   
-├─ README.md   
+├─ main_dataset.py
 ├─ read_flow.py 
 └─ save_file.py   
 
