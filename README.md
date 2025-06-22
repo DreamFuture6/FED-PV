@@ -6,7 +6,7 @@ This is code accompanying the dataset ~~and paper~~ by Xiang Feng, Fan Wu and Ao
 
 ## Dataset Presentation
 
-The following are the three flow fields in our dataset, which are (a) Cylinder, (b) JHTDB, and (c) Backstep.
+The following are the six flow fields in our dataset.
 ![image](https://github.com/DreamFuture6/FED-PV/blob/main/FigDatasetShow.png?raw=true)
 
 
